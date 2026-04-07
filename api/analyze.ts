@@ -1,5 +1,47 @@
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
+function getCategoryCompetitors(category: string, cost: number) {
+  const normalized = (category || "").toLowerCase();
+
+  if (normalized.includes("أزياء") || normalized.includes("ملابس") || normalized.includes("fashion")) {
+    return [
+      { name: "متجر أزياء خليجي", price: Math.round(cost * 1.25), strategy: "تصاميم موسمية", offer: "خصم 15% للقطعتين" },
+      { name: "بوتيك عربي", price: Math.round(cost * 1.4), strategy: "تموضع فاخر", offer: "تغليف فاخر مجاني" },
+      { name: "دار الأناقة", price: Math.round(cost * 1.3), strategy: "تنوع موديلات", offer: "شحن مجاني" },
+      { name: "أزياء اليوم", price: Math.round(cost * 1.2), strategy: "تنافسي سريع", offer: "خصومات أسبوعية" },
+      { name: "لمسة ستايل", price: Math.round(cost * 1.5), strategy: "علامة مميزة", offer: "هدية مع الطلب" },
+    ];
+  }
+
+  if (normalized.includes("الكتر") || normalized.includes("تقنية") || normalized.includes("electronics")) {
+    return [
+      { name: "تك ستور", price: Math.round(cost * 1.18), strategy: "سعر تنافسي", offer: "ضمان ممتد" },
+      { name: "سمارت شوب", price: Math.round(cost * 1.28), strategy: "عروض باقات", offer: "شحن مجاني" },
+      { name: "جيك ماركت", price: Math.round(cost * 1.35), strategy: "منتجات أصلية", offer: "استرجاع 14 يوم" },
+      { name: "إلكترونيات برو", price: Math.round(cost * 1.24), strategy: "تركيز على المواصفات", offer: "تقسيط مرن" },
+      { name: "جهازك", price: Math.round(cost * 1.42), strategy: "خدمة بعد البيع", offer: "تركيب مجاني" },
+    ];
+  }
+
+  if (normalized.includes("عناية") || normalized.includes("تجميل") || normalized.includes("beauty")) {
+    return [
+      { name: "بيوتي هب", price: Math.round(cost * 1.35), strategy: "محتوى تجريبي", offer: "عينة مجانية" },
+      { name: "جلو ستور", price: Math.round(cost * 1.22), strategy: "حزم عناية", offer: "اشترِ 2 واحصل على خصم" },
+      { name: "سكين كير بلس", price: Math.round(cost * 1.45), strategy: "تموضع طبي", offer: "استشارة مجانية" },
+      { name: "نعومة", price: Math.round(cost * 1.3), strategy: "قيمة مقابل سعر", offer: "شحن مجاني" },
+      { name: "لافندر بيوتي", price: Math.round(cost * 1.5), strategy: "فاخر", offer: "برنامج نقاط" },
+    ];
+  }
+
+  return [
+    { name: "المتجر الأول", price: Math.round(cost * 1.2), strategy: "سعر متوسط مع عروض أسبوعية", offer: "شحن مجاني عند 200 ر.س" },
+    { name: "المتجر الثاني", price: Math.round(cost * 1.35), strategy: "تركيز على الجودة", offer: "خصم 10% لأول طلب" },
+    { name: "المتجر الثالث", price: Math.round(cost * 1.45), strategy: "حزم منتجات", offer: "اشترِ 2 واحصل على 1" },
+    { name: "المتجر الرابع", price: Math.round(cost * 1.28), strategy: "سعر تنافسي", offer: "استرجاع مجاني" },
+    { name: "المتجر الخامس", price: Math.round(cost * 1.55), strategy: "علامة فاخرة", offer: "تغليف هدية" },
+  ];
+}
+
 function buildFallbackAnalysis(input: any) {
   const cost = Number(input?.costPrice || 0);
   const margin = Number(input?.desiredMargin || 30);
@@ -7,13 +49,7 @@ function buildFallbackAnalysis(input: any) {
   const aggressivePrice = Math.round(cost * (1 + (margin + 10) / 100));
   const premiumPrice = Math.round(cost * (1 + (margin + 25) / 100));
 
-  const competitors = [
-    { name: "المتجر الأول", price: Math.round(cost * 1.2), strategy: "سعر متوسط مع عروض أسبوعية", offer: "شحن مجاني عند 200 ر.س" },
-    { name: "المتجر الثاني", price: Math.round(cost * 1.35), strategy: "تركيز على الجودة", offer: "خصم 10% لأول طلب" },
-    { name: "المتجر الثالث", price: Math.round(cost * 1.45), strategy: "حزم منتجات", offer: "اشترِ 2 واحصل على 1" },
-    { name: "المتجر الرابع", price: Math.round(cost * 1.28), strategy: "سعر تنافسي", offer: "استرجاع مجاني" },
-    { name: "المتجر الخامس", price: Math.round(cost * 1.55), strategy: "علامة فاخرة", offer: "تغليف هدية" },
-  ];
+  const competitors = getCategoryCompetitors(String(input?.category || ""), cost);
 
   const min = Math.min(...competitors.map((c) => c.price));
   const max = Math.max(...competitors.map((c) => c.price));
@@ -123,7 +159,7 @@ function buildFallbackAnalysis(input: any) {
       riskAssessment: "منخفض إلى متوسط",
     },
     deepSearchOutput: {
-      summary: "نتيجة افتراضية: تم إنشاء التحليل محليًا لعرض النتائج لأن مفتاح Gemini غير متاح حاليًا.",
+      summary: `نتيجة افتراضية: تم إنشاء التحليل محليًا لفئة ${input?.category || "عامة"} لأن مفتاح Gemini غير متاح حاليًا.`, 
       keyFindings: [
         "السوق حساس للسعر مع تفضيل العروض المركبة.",
         "المحتوى المعتمد على القيمة يرفع الثقة والتحويل.",
@@ -235,6 +271,7 @@ export default async function handler(req: any, res: any) {
 
     const prompt = `
       Act as a Senior AI Product Strategist and Market Analyst.
+      You must use Google Search tool for live market evidence.
       Analyze this product for a Gulf merchant:
       - Name: ${input.name}
       - Category: ${input.category}
@@ -243,13 +280,14 @@ export default async function handler(req: any, res: any) {
       - Margin: ${input.desiredMargin}%
 
       Output a JSON report in Arabic covering:
-      1. Competitor simulation (5-10 competitors).
+      1. Competitor comparison (5-10 real competitors) based on actual web search and suitable to the same category.
+         Include realistic names, current price points, pricing strategy, and offer style.
       2. Market analysis (avg price, range, trends).
       3. 3 Content strategies (Emotional, Authority, Value).
       4. 3 Pricing options (Safe, Aggressive, Premium) based on ${input.costPrice} SAR cost.
       5. 3 Offer ideas.
       6. Final recommendation.
-      7. Deep search output: short summary, key findings, and verified source URLs.
+      7. Deep search output: short summary, key findings, and verified source URLs used in the competitor pricing section.
 
       Use professional Arabic. Data-driven logic only.
     `;
@@ -259,6 +297,7 @@ export default async function handler(req: any, res: any) {
       contents: prompt,
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
