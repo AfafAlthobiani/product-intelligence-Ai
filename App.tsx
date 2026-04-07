@@ -35,7 +35,8 @@ export default function App() {
       }
     } catch (err) {
       console.error(err);
-      setError("حدث خطأ أثناء تحليل البيانات. يرجى المحاولة مرة أخرى.");
+      const message = err instanceof Error ? err.message : "حدث خطأ أثناء تحليل البيانات. يرجى المحاولة مرة أخرى.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
