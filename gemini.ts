@@ -4,6 +4,13 @@ import { ProductInput, AnalysisResult } from "./types";
 const apiKey = process.env.GEMINI_API_KEY;
 
 function extractTextFromResponse(response: any): string {
+  if (typeof response?.text === "function") {
+    const textValue = response.text();
+    if (typeof textValue === "string" && textValue.trim()) {
+      return textValue;
+    }
+  }
+
   if (typeof response?.text === "string" && response.text.trim()) {
     return response.text;
   }
