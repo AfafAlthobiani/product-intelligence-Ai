@@ -3,6 +3,83 @@ import { ProductInput, AnalysisResult } from "./types";
 
 const apiKey = process.env.GEMINI_API_KEY;
 
+function extractTextFromResponse(response: any): string {
+  if (typeof response?.text === "string" && response.text.trim()) {
+    return response.text;
+  }
+
+  const parts = response?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    const collected = parts
+      .map((part: any) => (typeof part?.text === "string" ? part.text : ""))
+      .join("\n")
+      .trim();
+    if (collected) return collected;
+  }
+
+  return "";
+}
+
+function extractFirstJsonObject(raw: string): string {
+  const cleaned = raw.replace(/```json|```/gi, "").trim();
+  const start = cleaned.indexOf("{");
+  if (start === -1) return cleaned;
+
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let i = start; i < cleaned.length; i++) {
+    const char = cleaned[i];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === "\\") {
+        isEscaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") depth += 1;
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return cleaned.slice(start, i + 1);
+      }
+    }
+  }
+
+  return cleaned;
+}
+
+function extractGroundedSources(response: any): { title: string; url: string }[] {
+  const chunks = response?.candidates?.[0]?.groundingMetadata?.groundingChunks;
+  if (!Array.isArray(chunks)) return [];
+
+  const seen = new Set<string>();
+  const sources: { title: string; url: string }[] = [];
+
+  for (const chunk of chunks) {
+    const title = chunk?.web?.title;
+    const url = chunk?.web?.uri;
+    if (typeof title !== "string" || typeof url !== "string") continue;
+    if (seen.has(url)) continue;
+
+    seen.add(url);
+    sources.push({ title, url });
+  }
+
+  return sources;
+}
+
 export async function analyzeProduct(input: ProductInput): Promise<AnalysisResult> {
   const ai = new GoogleGenAI({ apiKey: apiKey! });
   const prompt = `
@@ -21,6 +98,7 @@ export async function analyzeProduct(input: ProductInput): Promise<AnalysisResul
     4. 3 Pricing options (Safe, Aggressive, Premium) based on ${input.costPrice} SAR cost.
     5. 3 Offer ideas.
     6. Final recommendation.
+    7. Deep search output: short summary, key findings, and verified source URLs.
 
     Use professional Arabic. Data-driven logic only.
   `;
@@ -154,18 +232,45 @@ export async function analyzeProduct(input: ProductInput): Promise<AnalysisResul
                 impact: { type: Type.STRING },
                 riskAssessment: { type: Type.STRING }
               }
+            },
+            deepSearchOutput: {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                keyFindings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                sources: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      url: { type: Type.STRING }
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
     });
 
-    const text = response.text;
+    const text = extractTextFromResponse(response);
     if (!text) throw new Error("Empty response from AI");
-    
-    // Clean potential markdown backticks if any (though responseMimeType: "application/json" should prevent this)
-    const cleanJson = text.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleanJson);
+
+    const jsonText = extractFirstJsonObject(text);
+    const parsed = JSON.parse(jsonText) as AnalysisResult;
+
+    if (!parsed.deepSearchOutput) {
+      const groundedSources = extractGroundedSources(response);
+      parsed.deepSearchOutput = {
+        summary: "",
+        keyFindings: [],
+        sources: groundedSources,
+      };
+    }
+
+    return parsed;
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;

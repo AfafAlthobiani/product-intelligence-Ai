@@ -70,4 +70,9 @@ export interface AnalysisResult {
     impact: string;
     riskAssessment: string;
   };
+  deepSearchOutput?: {
+    summary: string;
+    keyFindings: string[];
+    sources: { title: string; url: string }[];
+  };
 }
