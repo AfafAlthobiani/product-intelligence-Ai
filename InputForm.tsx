@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ProductInput } from "../types";
+import { ProductInput } from "./types";
 import { Package, Tag, Users, Wallet, Percent, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 

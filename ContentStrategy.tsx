@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ContentStrategy as ContentStrategyType } from "../types";
+import { ContentStrategy as ContentStrategyType } from "./types";
 import { Heart, Shield, Zap, CheckCircle2, MessageCircle, Share2, Search, Copy, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 

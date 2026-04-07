@@ -1,5 +1,5 @@
 import React from "react";
-import { OfferIdea } from "../types";
+import { OfferIdea } from "./types";
 import { Gift, Timer, ShoppingBag, TrendingUp, Calculator, BrainCircuit } from "lucide-react";
 
 interface Props {

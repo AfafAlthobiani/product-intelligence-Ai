@@ -1,5 +1,5 @@
 import React from "react";
-import { AnalysisResult } from "../types";
+import { AnalysisResult } from "./types";
 import { Award, Target, TrendingUp, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 

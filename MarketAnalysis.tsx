@@ -1,5 +1,5 @@
 import React from "react";
-import { MarketAnalysis as MarketAnalysisType } from "../types";
+import { MarketAnalysis as MarketAnalysisType } from "./types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { TrendingUp, Target, Users, Layout, FileText, Info } from "lucide-react";
 

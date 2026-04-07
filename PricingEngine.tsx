@@ -1,5 +1,5 @@
 import React from "react";
-import { PricingOption } from "../types";
+import { PricingOption } from "./types";
 import { ShieldCheck, Rocket, Crown, ArrowUpRight, AlertCircle, Info } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 

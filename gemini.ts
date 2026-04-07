@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
-import { ProductInput, AnalysisResult } from "../types";
+import { ProductInput, AnalysisResult } from "./types";
 
 const apiKey = process.env.GEMINI_API_KEY;
 
